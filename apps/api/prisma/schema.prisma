@@ -1,0 +1,152 @@
+// Verdict Vision - Legal AI Platform
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  LAWYER
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum LawyerVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  name                  String
+  email                 String    @unique
+  passwordHash          String    @map("password_hash")
+  role                  Role      @default(USER)
+  enrollmentNo          String?   @map("enrollment_no")   // Bar Council ID (lawyers only)
+  lawyerVerificationStatus LawyerVerificationStatus? @map("lawyer_verification_status")
+  credits               Int       @default(10)            // Freemium: 10 free credits
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  searches    Search[]
+  payments    Payment[]
+  auditLogs   AuditLog[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("refresh_tokens")
+}
+
+model Case {
+  id          String   @id @default(uuid())
+  title       String
+  parties     String?  // Plaintiff vs Defendant summary
+  court       String   // Supreme Court, Delhi High Court, etc.
+  year        Int
+  citation    String?
+  judgmentText String  @map("judgment_text") @db.Text
+  pdfUrl      String?  @map("pdf_url")
+  bench       String?
+  actsSections String? @map("acts_sections") @db.Text // JSON or comma-separated
+  // Embeddings stored in Pinecone; case id used as reference
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  sourceUrl   String?  @map("source_url")
+
+  searchResults CaseSearchResult[]
+
+  @@index([court, year])
+  @@index([citation])
+  @@map("cases")
+}
+
+// Join table for semantic search results (many-to-many with score)
+model CaseSearchResult {
+  id        String   @id @default(uuid())
+  caseId    String   @map("case_id")
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  searchId  String   @map("search_id")
+  search    Search   @relation(fields: [searchId], references: [id], onDelete: Cascade)
+  score     Float
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([caseId, searchId])
+  @@map("case_search_results")
+}
+
+model Search {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query      String   @db.Text
+  creditsUsed Int     @default(1) @map("credits_used")
+  aiResponse String?  @map("ai_response") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  caseResults CaseSearchResult[]
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("searches")
+}
+
+model Payment {
+  id          String        @id @default(uuid())
+  userId      String        @map("user_id")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Decimal       @db.Decimal(12, 2)  // in INR
+  currency    String        @default("INR")
+  status      PaymentStatus @default(PENDING)
+  gatewayId   String?       @map("gateway_id")  // Razorpay order/payment id
+  creditsAdded Int?         @map("credits_added")
+  plan        String?       // basic, pro, lawyer_premium
+  gstAmount   Decimal?      @map("gst_amount") @db.Decimal(12, 2)
+  invoiceUrl  String?       @map("invoice_url")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([gatewayId])
+  @@index([status])
+  @@map("payments")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  resource   String?
+  details    String?  @db.Text
+  ip         String?
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

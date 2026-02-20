@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 222 47% 22%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 28%;
+    --radius: 0.75rem;
+    --gradient-start: 222 47% 22%;
+    --gradient-end: 230 40% 35%;
+  }
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    --primary: 212 100% 68%;
+    --primary-foreground: 222 47% 12%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 50%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 212 100% 68%;
+  }
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+/* Glassmorphism */
+.glass {
+  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10;
+}
+
+.glass-card {
+  @apply bg-white/95 dark:bg-card/95 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-card dark:shadow-card-dark transition-all duration-300;
+}
+.glass-card:hover {
+  @apply shadow-card-hover dark:shadow-card-dark-hover border-primary/20 dark:border-primary/30 -translate-y-0.5;
+}
+
+/* Premium dashboard/admin card: lift, glow border on hover */
+.card-premium {
+  @apply relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 dark:bg-card/90 backdrop-blur-xl shadow-card dark:shadow-card-dark transition-all duration-300;
+}
+.card-premium::before {
+  content: '';
+  @apply absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 pointer-events-none;
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.08);
+}
+.dark .card-premium::before {
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.15);
+}
+.card-premium:hover {
+  @apply -translate-y-1 shadow-card-hover dark:shadow-card-dark-hover border-primary/25;
+}
+.card-premium:hover::before {
+  @apply opacity-100;
+}
+
+/* Transparent hover card - for landing sections */
+.card-transparent {
+  @apply bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 transition-all duration-300;
+}
+.card-transparent:hover {
+  @apply bg-white/80 dark:bg-white/10 border-primary/20 dark:border-primary/30 shadow-xl shadow-primary/5 dark:shadow-primary/10;
+}
+
+/* Subtle page gradient */
+.page-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(210 30% 96%) 50%,
+    hsl(220 25% 97%) 100%
+  );
+}
+
+.dark .page-gradient {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(222 40% 8%) 50%,
+    hsl(225 35% 9%) 100%
+  );
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
