@@ -20,12 +20,12 @@ export function PublicHeader({
 }) {
   return (
     <motion.header
-      className="sticky top-0 z-50 border-b border-border/40 bg-background/70 dark:bg-background/80 backdrop-blur-xl"
+      className="sticky top-0 z-50 border-b border-white/55 dark:border-white/10 bg-background/62 dark:bg-background/72 backdrop-blur-2xl shadow-[0_8px_34px_-24px_hsl(var(--foreground)/0.6)]"
       initial="hidden"
       animate="visible"
       variants={slideDown}
     >
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex min-h-16 items-center justify-between gap-2 px-4 py-2">
         <div className="flex items-center gap-4">
           <SiteLogo />
           {showBackToHome && (
@@ -34,16 +34,16 @@ export function PublicHeader({
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground" asChild>
-                <Link href="/">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="h-4 w-4" />
                   Back to home
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </motion.span>
           )}
         </div>
-        {rightSlot}
+        <div className="flex items-center gap-2">{rightSlot}</div>
       </div>
     </motion.header>
   );

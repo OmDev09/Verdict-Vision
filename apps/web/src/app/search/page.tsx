@@ -57,7 +57,7 @@ function SearchSkeleton() {
 
 export default function SearchPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refetch } = useAuth();
   const [query, setQuery] = useState('');
   const [court, setCourt] = useState('');
   const [year, setYear] = useState('');
@@ -117,6 +117,7 @@ export default function SearchPage() {
         similarCases: data.similarCases,
         creditsRemaining: data.creditsRemaining,
       });
+      await refetch();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
