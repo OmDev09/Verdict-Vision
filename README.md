@@ -51,6 +51,7 @@ npm run db:push
 
 To create an ADMIN user, use Prisma Studio or run a one-off script that hashes a password and inserts a user with `role: 'ADMIN'`.
 
+
 ### 4. Run
 
 ```bash
