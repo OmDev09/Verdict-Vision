@@ -99,7 +99,7 @@ export default function WalletPage() {
                 <p className="text-2xl font-bold mt-2 text-foreground">₹{plan.amount}</p>
                 <p className="text-sm text-muted-foreground">{plan.credits} credits</p>
                 <Button
-                  className="mt-4 rounded-xl"
+                  className="mt-4 w-full rounded-xl"
                   disabled={loading}
                   onClick={() => handlePurchase(plan.id)}
                 >
@@ -112,7 +112,7 @@ export default function WalletPage() {
           <h2 className="font-semibold text-lg mb-4">Payment history</h2>
           <ul className="space-y-2">
             {history.map((p) => (
-              <li key={p.id} className="card-premium flex justify-between items-center py-3 px-4 text-sm">
+              <li key={p.id} className="card-premium flex flex-col gap-1 py-3 px-4 text-sm sm:flex-row sm:items-center sm:justify-between">
                 <span>₹{p.amount} · {p.plan ?? 'N/A'} · {p.status}</span>
                 <span className="text-muted-foreground">{p.creditsAdded != null ? `+${p.creditsAdded} credits` : ''} · {new Date(p.createdAt).toLocaleDateString()}</span>
               </li>

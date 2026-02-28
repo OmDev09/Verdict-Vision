@@ -10,7 +10,7 @@ export function SiteLogo({ className, href = '/' }: { className?: string; href?:
     <Link
       href={href}
       className={cn(
-        'inline-flex items-center gap-2.5 font-semibold text-lg tracking-tight text-foreground no-underline hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg',
+        'inline-flex items-center gap-2.5 font-semibold text-lg tracking-tight text-foreground no-underline transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg',
         className
       )}
       aria-label="Verdict Vision – Home"
@@ -18,8 +18,9 @@ export function SiteLogo({ className, href = '/' }: { className?: string; href?:
       <motion.span
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ rotate: -3, scale: 1.03 }}
         transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25"
       >
         <Scale className="h-5 w-5" strokeWidth={2.2} />
       </motion.span>

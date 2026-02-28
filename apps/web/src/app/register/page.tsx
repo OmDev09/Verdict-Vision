@@ -63,9 +63,11 @@ export default function RegisterPage() {
     <div className="min-h-screen page-gradient flex flex-col">
       <PublicHeader rightSlot={<Link href="/login"><Button variant="ghost" size="sm">Log in</Button></Link>} />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="relative flex-1 flex items-center justify-center px-4 py-12">
+        <div className="pointer-events-none absolute -left-20 top-20 h-56 w-56 rounded-full bg-primary/15 blur-3xl dark:bg-primary/20" />
+        <div className="pointer-events-none absolute -right-20 bottom-8 h-64 w-64 rounded-full bg-orange-400/15 blur-3xl dark:bg-orange-300/12" />
         <motion.div
-          className="w-full max-w-md glass-card p-8 md:p-10"
+          className="relative z-10 w-full max-w-md glass-card p-8 md:p-10"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}

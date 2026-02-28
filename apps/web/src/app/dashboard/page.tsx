@@ -37,7 +37,7 @@ const cards = [
     href: '/search?history=1',
     label: 'History',
     variant: 'outline' as const,
-    gradient: 'from-violet-500/10 to-purple-500/5 dark:from-violet-500/15 dark:to-purple-500/10',
+    gradient: 'from-sky-500/10 to-cyan-500/5 dark:from-sky-500/15 dark:to-cyan-500/10',
     delay: 0.16,
   },
 ];
@@ -65,7 +65,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen page-gradient">
       <DashboardNav />
-      <main className="container mx-auto px-4 py-12 max-w-5xl">
+      <main className="container mx-auto px-4 py-10 md:py-12 max-w-5xl">
         <motion.header
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

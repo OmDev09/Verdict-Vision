@@ -37,30 +37,30 @@ export default function ProfilePage() {
           className="card-premium p-6 md:p-8"
         >
           <h1 className="text-2xl font-bold mb-6">Profile</h1>
-          <dl className="space-y-4">
-            <div>
+          <dl className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-border/60 bg-background/40 p-4">
               <dt className="text-sm text-muted-foreground">Name</dt>
               <dd className="font-medium">{user.name}</dd>
             </div>
-            <div>
+            <div className="rounded-xl border border-border/60 bg-background/40 p-4">
               <dt className="text-sm text-muted-foreground">Email</dt>
               <dd className="font-medium">{user.email}</dd>
             </div>
-            <div>
+            <div className="rounded-xl border border-border/60 bg-background/40 p-4">
               <dt className="text-sm text-muted-foreground">Role</dt>
               <dd className="font-medium">{user.role}</dd>
             </div>
-            <div>
+            <div className="rounded-xl border border-border/60 bg-background/40 p-4">
               <dt className="text-sm text-muted-foreground">Credits</dt>
               <dd className="font-medium">{user.credits}</dd>
             </div>
             {user.role === 'LAWYER' && (
               <>
-                <div>
+                <div className="rounded-xl border border-border/60 bg-background/40 p-4">
                   <dt className="text-sm text-muted-foreground">Enrollment number</dt>
                   <dd className="font-medium">{user.enrollmentNo ?? '—'}</dd>
                 </div>
-                <div>
+                <div className="rounded-xl border border-border/60 bg-background/40 p-4">
                   <dt className="text-sm text-muted-foreground">Verification</dt>
                   <dd className="font-medium">{user.lawyerVerificationStatus ?? 'PENDING'}</dd>
                 </div>

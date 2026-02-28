@@ -137,7 +137,8 @@ export default function AdminPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Lawyers with status <strong className="text-foreground">PENDING</strong> need verification. Click <strong>Approve</strong> to mark them verified, or <strong>Reject</strong> to deny.  </p>
             <div className="rounded-2xl border border-border/60 overflow-hidden bg-card/50 dark:bg-card/80 backdrop-blur">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
                 <thead className="bg-muted/40 dark:bg-muted/20">
                   <tr>
                     <th className="text-left p-3 font-medium">Name</th>
@@ -178,6 +179,7 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </motion.section>
         )}
@@ -190,7 +192,7 @@ export default function AdminPage() {
           <h2 className="font-semibold text-lg text-foreground mb-4">All users</h2>
           <div className="card-premium overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[760px] text-sm">
                 <thead className="bg-muted/40 dark:bg-muted/20">
                   <tr>
                     <th className="text-left p-3 font-medium">Name</th>
