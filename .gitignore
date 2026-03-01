@@ -40,3 +40,8 @@ prisma/migrations/**/migration_lock.toml
 # Misc
 *.pem
 .vercel
+
+# Data and large files
+scripts/data/
+*.pdf
+*.zip

@@ -38,53 +38,26 @@ export class AiService {
     query: string,
     court?: string,
     year?: number,
-    topK = 10,
+    topK = 5,
   ): Promise<CaseWithScore[]> {
-    const keywordCases = await this.cases.searchByKeyword(query, court, year, topK);
+    console.log(`[Vectorless RAG] 1. Fetching Lexical Matches for: "${query}"`);
+    // 1. Lexical Base Retrieval: Get a larger candidate pool (e.g., top 50) using Postgres BM25
+    const candidateCases = await this.cases.searchByKeyword(query, court, year, 50);
 
-    if (this.provider === 'ollama' && this.ollamaBaseUrl) {
-      try {
-        const res = await fetch(`${this.ollamaBaseUrl}/api/embeddings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: this.ollamaEmbedModel, input: query.slice(0, 8000) }),
-        });
-        if (res.ok) {
-          const data = (await res.json()) as { embedding?: number[]; embeddings?: number[][] };
-          const vector = data.embedding ?? data.embeddings?.[0];
-          if (Array.isArray(vector)) {
-            const semanticCases = await this.cases.searchByEmbedding(vector, court, year, topK);
-            const mergedIds = this.mergeAndDedupeIds(keywordCases, semanticCases).slice(0, topK);
-            const byId = new Map(keywordCases.map((c) => [c.id, c]));
-            semanticCases.forEach((c) => byId.set(c.id, c));
-            return mergedIds.map((id) => byId.get(id)).filter(Boolean) as CaseWithScore[];
-          }
-        }
-      } catch {
-        // fallback to keyword only
-      }
-      return keywordCases;
+    if (candidateCases.length === 0) {
+      console.log(`[Vectorless RAG] No keyword matches found.`);
+      return [];
     }
 
-    // RAG: vector search can be added later (e.g. Pinecone/pgvector with Ollama embeddings)
-    return keywordCases;
+    console.log(`[Vectorless RAG] 2. Surfaced ${candidateCases.length} candidates. Applying Neural Reranking...`);
+    // 2. Neural Reranking: Surface the top K semantically relevant cases from the candidates
+    const finalTopCases = await this.cases.rerankResults(query, candidateCases, topK);
+
+    console.log(`[Vectorless RAG] 3. Reranking complete. Selected top ${finalTopCases.length} cases.`);
+    return finalTopCases;
   }
 
-  private mergeAndDedupeIds(
-    keyword: Array<{ id: string; score?: number }>,
-    semantic: Array<{ id: string; score?: number }>,
-  ): string[] {
-    const byId = new Map<string, number>();
-    keyword.forEach((c, i) => byId.set(c.id, (c.score ?? 1) - i * 0.01));
-    semantic.forEach((c, i) => {
-      const score = (c.score ?? 1) - i * 0.01;
-      const existing = byId.get(c.id);
-      if (existing === undefined || score > existing) byId.set(c.id, score);
-    });
-    return Array.from(byId.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([id]) => id);
-  }
+
 
   async generateResponse(
     query: string,
@@ -238,15 +211,15 @@ Provide general legal guidance for Indian law on the above query. Do not invent 
         }
         throw new Error(`Groq: ${errMsg}${errorDetails}. Model: ${this.groqModel}. Check your GROQ_API_KEY and GROQ_MODEL in .env`);
       }
-      
-      let data: { 
-        choices?: Array<{ 
-          message?: { 
+
+      let data: {
+        choices?: Array<{
+          message?: {
             content?: string | null;
             /** Used by reasoning/safeguard models when final answer is in reasoning or content is empty */
             reasoning?: string | null;
-          } 
-        }> 
+          }
+        }>
       };
       try {
         const responseText = await res.text();
@@ -256,19 +229,19 @@ Provide general legal guidance for Indian law on the above query. Do not invent 
         console.error('[Groq] JSON parse error:', parseError);
         throw new Error(`Groq returned invalid JSON response. Check API status and model availability.`);
       }
-      
+
       const msg = data.choices?.[0]?.message;
       const content = msg?.content?.trim();
       const reasoning = msg?.reasoning?.trim();
-      
+
       // Reasoning/safeguard models (e.g. openai/gpt-oss-safeguard-20b) may put output in reasoning when content is empty
       const text = (content && content.length > 0) ? content : (reasoning && reasoning.length > 0 ? reasoning : '');
-      
+
       if (!text) {
         console.error('[Groq] Empty content and reasoning');
         throw new Error(`Groq returned empty response. Model: ${this.groqModel}. Check model name and API key.`);
       }
-      
+
       console.log(`[Groq] Success, response length: ${text.length}, source: ${content ? 'content' : 'reasoning'}`);
       return text;
     } catch (error) {
