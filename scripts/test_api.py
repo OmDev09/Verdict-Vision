@@ -6,11 +6,12 @@ import sys
 print("Registering test user...")
 try:
     requests.post(
-        'http://localhost:4000/auth/register',
+        'http://localhost:4000/auth/register/lawyer',
         json={
-            "name": "Test User",
-            "email": "testuser@example.com",
-            "password": "Password123"
+            "name": "Test Lawyer",
+            "email": "testlawyer@example.com",
+            "password": "Password123",
+            "enrollmentNo": "BR/20/123456"
         }
     )
     print("Registration step complete (user might already exist, which is fine)")
@@ -22,7 +23,7 @@ print("Logging in to get JWT token...")
 login_response = requests.post(
     'http://localhost:4000/auth/login',
     json={
-        "email": "testuser@example.com",
+        "email": "testlawyer@example.com",
         "password": "Password123"
     }
 )

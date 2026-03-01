@@ -54,7 +54,7 @@ export const searchApi = {
       creditsUsed: number;
       creditsRemaining: number;
       response: string;
-      similarCases: Array<{ id: string; title: string; court: string; year: number; citation: string | null; pdfUrl: string | null }>;
+      similarCases: Array<{ id: string; title: string; court: string; year: number; citation: string | null; pdfUrl: string | null; snippet?: string | null }>;
     }>('/search', { method: 'POST', body: JSON.stringify(body) }),
   history: (limit?: number) =>
     api<Array<{ id: string; query: string; creditsUsed: number; createdAt: string }>>(

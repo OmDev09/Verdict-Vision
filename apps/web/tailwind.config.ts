@@ -27,11 +27,21 @@ const config: Config = {
         'fade-in': 'fadeIn 0.4s ease-out',
         'slide-up': 'slideUp 0.4s ease-out',
         'glow': 'glow 2.5s ease-in-out infinite',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
         slideUp: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
         glow: { '0%, 100%': { opacity: '0.4' }, '50%': { opacity: '0.8' } },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
       },
       boxShadow: {
         'card': '0 4px 24px -4px rgb(0 0 0 / 0.06), 0 8px 32px -4px rgb(0 0 0 / 0.04)',

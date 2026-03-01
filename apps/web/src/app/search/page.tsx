@@ -9,6 +9,12 @@ import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/ui/accordion';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { useAuth } from '@/contexts/auth-context';
 import { searchApi, casesApi } from '@/lib/api';
@@ -68,7 +74,7 @@ export default function SearchPage() {
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<{
     response: string;
-    similarCases: Array<{ id: string; title: string; court: string; year: number; citation: string | null; pdfUrl: string | null }>;
+    similarCases: Array<{ id: string; title: string; court: string; year: number; citation: string | null; pdfUrl: string | null; snippet?: string | null }>;
     creditsRemaining: number;
   } | null>(null);
   const [error, setError] = useState('');
@@ -303,12 +309,39 @@ export default function SearchPage() {
                       className="card-premium p-5 border-l-4 border-l-blue-500/60"
                       whileHover={{ x: 4, transition: { duration: 0.2 } }}
                     >
-                      <p className="font-semibold text-foreground text-base leading-snug">{c.title}</p>
-                      <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
-                        <BookOpen className="h-3.5 w-3.5" />
-                        {c.court} · {c.year}{c.citation ? ` · ${c.citation}` : ''}
-                      </p>
-                      {c.pdfUrl && (
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <p className="font-semibold text-foreground text-base leading-snug">{c.title}</p>
+                          <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            {c.court} · {c.year}{c.citation ? ` · ${c.citation}` : ''}
+                          </p>
+                        </div>
+                        {c.pdfUrl && user?.role === 'LAWYER' && (
+                          <a href={c.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                            <Button variant="secondary" size="sm" className="gap-2 h-9">
+                              <FileText className="h-4 w-4" /> View Original Judgment
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+
+                      {c.snippet && (
+                        <div className="mt-4">
+                          <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="summary" className="border-b-0">
+                              <AccordionTrigger className="text-sm text-blue-500 hover:text-blue-600 py-2 hover:no-underline rounded-lg px-3 bg-blue-500/5 hover:bg-blue-500/10 transition-colors">
+                                View Brief Summary
+                              </AccordionTrigger>
+                              <AccordionContent className="text-sm text-foreground/80 leading-relaxed pt-3 px-3">
+                                {c.snippet}
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        </div>
+                      )}
+
+                      {!c.snippet && c.pdfUrl && user?.role !== 'LAWYER' && (
                         <a href={c.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 hover:underline mt-3">
                           <FileText className="h-4 w-4" /> View Original Document
                         </a>

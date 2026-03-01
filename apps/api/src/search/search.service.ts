@@ -9,7 +9,7 @@ export class SearchService {
   constructor(
     private prisma: PrismaService,
     private ai: AiService,
-  ) {}
+  ) { }
 
   async executeSearch(user: CurrentUserPayload, dto: SearchQueryDto) {
     if (user.credits < 1) throw new BadRequestException('Insufficient credits. Please add credits to continue.');
@@ -56,7 +56,8 @@ export class SearchService {
           court: c.court,
           year: c.year,
           citation: c.citation,
-          pdfUrl: c.pdfUrl,
+          pdfUrl: c.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', // Placeholder for testing
+          snippet: isLawyer ? (c.judgmentText ? c.judgmentText.slice(0, 800) + '...' : null) : null,
         })),
       };
     } catch (error) {
