@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Search as SearchIcon, Loader2, Copy, Check, FileText } from 'lucide-react';
+import { Search as SearchIcon, Loader2, Copy, Check, FileText, Bot, Scale, BookOpen } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -62,6 +64,7 @@ export default function SearchPage() {
   const [court, setCourt] = useState('');
   const [year, setYear] = useState('');
   const [suggestions, setSuggestions] = useState<Array<{ id: string; title: string; court: string; year: number }>>([]);
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<{
     response: string;
@@ -102,6 +105,7 @@ export default function SearchPage() {
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    setIsAutocompleteOpen(false);
     if (!query.trim() || !user) return;
     setError('');
     setResult(null);
@@ -148,7 +152,12 @@ export default function SearchPage() {
             <Input
               placeholder="Describe your legal situation or search for a topic..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setIsAutocompleteOpen(true);
+              }}
+              onFocus={() => setIsAutocompleteOpen(true)}
+              onBlur={() => setTimeout(() => setIsAutocompleteOpen(false), 200)}
               className="pl-10 pr-28 py-6 text-base rounded-xl"
               disabled={searching}
             />
@@ -188,16 +197,20 @@ export default function SearchPage() {
             </div>
           </div>
 
-          {suggestions.length > 0 && (
-            <ul className="absolute z-10 w-full mt-1 rounded-xl border border-border bg-card shadow-lg py-2 max-h-48 overflow-auto">
+          {isAutocompleteOpen && suggestions.length > 0 && (
+            <ul className="absolute z-50 w-full mt-2 rounded-xl border border-border/50 bg-background/95 backdrop-blur-md shadow-2xl py-2 max-h-60 overflow-auto dark:shadow-primary/5">
               {suggestions.slice(0, 5).map((c) => (
                 <li key={c.id}>
                   <button
                     type="button"
-                    className="w-full text-left px-4 py-2.5 hover:bg-muted text-sm transition-colors"
-                    onClick={() => setQuery(c.title)}
+                    className="w-full text-left px-5 py-3 hover:bg-primary/10 hover:text-primary text-sm transition-colors border-b border-border/30 last:border-0"
+                    onClick={() => {
+                      setQuery(c.title);
+                      setIsAutocompleteOpen(false);
+                    }}
                   >
-                    {c.title} — {c.court} ({c.year})
+                    <div className="font-medium line-clamp-1">{c.title}</div>
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5"><BookOpen className="h-3 w-3" /> {c.court} · {c.year}</div>
                   </button>
                 </li>
               ))}
@@ -249,7 +262,13 @@ export default function SearchPage() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <div className="card-premium p-6 md:p-8 relative">
+            <div className="card-premium p-6 md:p-8 relative border-t-4 border-t-primary/80">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-lg tracking-tight">AI Generated Analysis</h3>
+              </div>
               <div className="absolute top-4 right-4">
                 <Button
                   type="button"
@@ -262,26 +281,36 @@ export default function SearchPage() {
                   {copied ? 'Copied' : 'Copy'}
                 </Button>
               </div>
-              <div className="prose prose-sm dark:prose-invert max-w-none pr-24">
-                <p className="whitespace-pre-wrap text-foreground leading-relaxed">{result.response}</p>
+              <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none pr-12 prose-headings:text-primary/90 prose-a:text-primary">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {result.response}
+                </ReactMarkdown>
               </div>
             </div>
 
             {result.similarCases.length > 0 ? (
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Similar cases</h3>
-                <ul className="space-y-3">
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500 dark:text-blue-400">
+                    <Scale className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-semibold text-lg tracking-tight">Postgres Retrieved Official Court Records</h3>
+                </div>
+                <ul className="space-y-4">
                   {result.similarCases.map((c) => (
                     <motion.li
                       key={c.id}
-                      className="card-premium p-4"
-                      whileHover={{ x: 4 }}
+                      className="card-premium p-5 border-l-4 border-l-blue-500/60"
+                      whileHover={{ x: 4, transition: { duration: 0.2 } }}
                     >
-                      <p className="font-medium text-foreground">{c.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{c.court} · {c.year}{c.citation ? ` · ${c.citation}` : ''}</p>
+                      <p className="font-semibold text-foreground text-base leading-snug">{c.title}</p>
+                      <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        {c.court} · {c.year}{c.citation ? ` · ${c.citation}` : ''}
+                      </p>
                       {c.pdfUrl && (
-                        <a href={c.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2">
-                          <FileText className="h-3.5 w-3.5" /> View PDF
+                        <a href={c.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 hover:underline mt-3">
+                          <FileText className="h-4 w-4" /> View Original Document
                         </a>
                       )}
                     </motion.li>
@@ -289,14 +318,14 @@ export default function SearchPage() {
                 </ul>
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">
-                <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
-                <p className="text-muted-foreground font-medium">No similar cases found</p>
-                <p className="text-sm text-muted-foreground mt-1">Add more judgments to the database to see relevant case references here.</p>
+              <div className="mt-8 rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center">
+                <Scale className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
+                <p className="text-muted-foreground font-medium">No official court cases matched exactly</p>
+                <p className="text-sm text-muted-foreground mt-1">Our Postgres BM25 search couldn't find an exact lexical match in our current database sample.</p>
               </div>
             )}
 
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-6">
               <span className="inline-flex h-2 w-2 rounded-full bg-primary/60" />
               Credits remaining: <strong className="text-foreground">{result.creditsRemaining}</strong>
             </p>
