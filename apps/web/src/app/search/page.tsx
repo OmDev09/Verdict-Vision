@@ -102,6 +102,12 @@ export default function SearchPage() {
     searchApi.history(10).then(setHistory).catch(() => setHistory([]));
   }, [user, result]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('history=1')) {
+      setShowHistory(true);
+    }
+  }, []);
+
   const copyResponse = useCallback(() => {
     if (!result?.response) return;
     navigator.clipboard.writeText(result.response);
@@ -130,6 +136,29 @@ export default function SearchPage() {
       await refetch();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  async function loadHistory(id: string) {
+    setIsAutocompleteOpen(false);
+    setError('');
+    setResult(null);
+    setSearching(true);
+    setShowHistory(false);
+    try {
+      const data = await searchApi.getHistoryById(id);
+      setQuery(data.query);
+      setResult({
+        response: data.response,
+        similarCases: data.similarCases,
+        // Note: older searches might not have a fresh creditsRemaining mapped depending on the service logic, but we can fallback or safely accept whatever it returns.
+        creditsRemaining: data.creditsRemaining,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load history');
+      setShowHistory(true);
     } finally {
       setSearching(false);
     }
@@ -250,9 +279,17 @@ export default function SearchPage() {
             className="space-y-2"
           >
             {history.map((h) => (
-              <li key={h.id} className="flex justify-between items-center py-3 px-4 card-premium text-sm">
-                <span className="text-foreground font-medium">{h.query}</span>
-                <span className="text-muted-foreground shrink-0 ml-2">{h.creditsUsed} credit · {new Date(h.createdAt).toLocaleDateString()}</span>
+              <li key={h.id}>
+                <button
+                  type="button"
+                  onClick={() => loadHistory(h.id)}
+                  className="w-full flex justify-between items-center py-3 px-4 card-premium text-sm hover:border-primary/50 hover:shadow-md transition-all text-left group"
+                >
+                  <span className="text-foreground font-medium group-hover:text-primary transition-colors pr-4">{h.query}</span>
+                  <span className="text-muted-foreground shrink-0 ml-auto whitespace-nowrap">
+                    {new Date(h.createdAt).toLocaleDateString()}
+                  </span>
+                </button>
               </li>
             ))}
             {history.length === 0 && (
