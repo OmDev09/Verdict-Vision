@@ -60,6 +60,15 @@ export const searchApi = {
     api<Array<{ id: string; query: string; creditsUsed: number; createdAt: string }>>(
       limit != null ? `/search/history?limit=${limit}` : '/search/history'
     ),
+  getHistoryById: (id: string) =>
+    api<{
+      searchId: string;
+      query: string;
+      creditsUsed: number;
+      creditsRemaining: number;
+      response: string;
+      similarCases: Array<{ id: string; title: string; court: string; year: number; citation: string | null; pdfUrl: string | null; snippet?: string | null }>;
+    }>(`/search/history/${id}`),
 };
 
 export const paymentsApi = {

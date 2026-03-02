@@ -77,4 +77,39 @@ export class SearchService {
       select: { id: true, query: true, creditsUsed: true, createdAt: true },
     });
   }
+
+  async getSearchById(user: CurrentUserPayload, searchId: string) {
+    const search = await this.prisma.search.findUnique({
+      where: { id: searchId, userId: user.id },
+      include: {
+        caseResults: {
+          include: { case: true },
+          orderBy: { score: 'desc' },
+        },
+      },
+    });
+
+    if (!search) {
+      throw new BadRequestException('Search not found or unauthorized');
+    }
+
+    const isLawyer = user.role === 'LAWYER';
+
+    return {
+      searchId: search.id,
+      query: search.query,
+      creditsUsed: search.creditsUsed,
+      creditsRemaining: user.credits,
+      response: search.aiResponse,
+      similarCases: search.caseResults.map((cr) => ({
+        id: cr.case.id,
+        title: cr.case.title,
+        court: cr.case.court,
+        year: cr.case.year,
+        citation: cr.case.citation,
+        pdfUrl: cr.case.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+        snippet: isLawyer ? (cr.case.judgmentText ? cr.case.judgmentText.slice(0, 800) + '...' : null) : null,
+      })),
+    };
+  }
 }
