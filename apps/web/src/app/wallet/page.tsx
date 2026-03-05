@@ -124,7 +124,7 @@ export default function WalletPage() {
     </motion.div>
   );
 
-  return user.role === 'LAWYER' ? (
+  return user.role === 'LAWYER' || user.role === 'ADMIN' ? (
     <div className="min-h-screen page-gradient">
       <DashboardNav />
       <main className="container mx-auto px-4 py-8 max-w-4xl">
