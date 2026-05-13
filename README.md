@@ -1,126 +1,73 @@
 # Verdict Vision
 
-AI-powered legal assistant for Indian law. Helps citizens understand legal situations and lawyers generate professional arguments using Supreme Court & Delhi High Court judgments. Freemium credit model with Razorpay.
+Verdict Vision is a next-generation AI-powered legal assistant designed specifically for the complex landscape of Indian jurisprudence. By leveraging a novel **Vectorless RAG (Retrieval-Augmented Generation)** architecture, it delivers precise, hallucination-free legal insights using historical Supreme Court and High Court judgments.
 
-## Features
+The platform recognizes that legal data must be communicated differently depending on the audience, offering strictly differentiated user journeys:
+- **Citizens (Normal Users)**: Receive simplified, empathetic legal advice, actionable next steps, and plain-English explanations of complex procedures within a modern, ChatGPT-styled interface.
+- **Lawyers (Professionals)**: Authenticated legal professionals receive high-density analytical outputs including precise case citations, drafted courtroom arguments, and document templates within a specialized professional dashboard.
 
-- **Normal users**: Search legal situations, simplified advice, similar cases, next steps
-- **Lawyers**: Register with Bar Council enrollment number; get citations, arguments, draft templates
-- **Auth**: Email/password, JWT, roles (USER, LAWYER, ADMIN)
-- **Credits**: 10 free credits; 1 search = 1 credit; Razorpay for Basic / Pro / Lawyer Premium
-- **RAG**: Semantic + keyword search → retrieve similar judgments → LLM (OpenAI) response
-- **Legal compliance**: Disclaimer on all outputs; Indian IT Act; public judgments only
+## Key Innovations & Technical Highlights
 
-## Stack
+1. **Vectorless RAG Retrieval Pipeline**
+   - **Problem**: Traditional dense vector embeddings often struggle with the exact phrasing of legal citations (e.g., "AIR 1999 SC 1234"), leading to retrieved cases that are semantically similar but legally irrelevant.
+   - **Solution**: Verdict Vision utilizes highly optimized **Lexical Search (PostgreSQL BM25 Full-Text Search)**. This ensures exact matches on legal terminology, case names, and citations. 
+   - **Relevance**: Retrieved candidate cases are then passed through an AI-driven relevance pipeline (or Neural Reranker) before being injected into the generative context window.
 
-- **Frontend**: Next.js 14 (App Router), React 18, Tailwind CSS, Framer Motion
-- **Backend**: NestJS, Prisma, PostgreSQL, JWT, Argon2, Razorpay
-- **AI**: OpenAI (embeddings + chat), keyword search (Prisma); optional Pinecone for vectors
+2. **Role-Based Prompt Engineering & AI Generation**
+   - **Dynamic Context**: The NestJS backend intercepts all searches and dynamically modifies the system prompt based on the user's JWT role constraint.
+   - **Output Framing**: Legal queries from a `USER` tell the AI to prioritize "simplified advice and next steps", whereas queries from a `LAWYER` command the AI to output "drafting templates, legal arguments, and exact precedent analysis".
 
-## Setup
+3. **Differentiated Frontend Architecture**
+   - Built on Next.js 14 (App Router), the application conditionally mounts entirely different React hierarchies.
+   - **Citizen UI**: A clean, accessible layout featuring a sliding sidebar, inline AI-search execution, zero-credit history reloading, and minimal distractions.
+   - **Lawyer UI**: A data-dense, analytical workspace featuring saved citation trackers, drafting assistants, and multi-pane data visibility.
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, React 18, Tailwind CSS, Framer Motion, Radix UI (Shadcn)
+- **Backend**: NestJS, Prisma ORM, PostgreSQL
+- **AI Integration**: Groq API / Llama-3 (for hyper-fast generation), Langchain concepts
+- **Auth & Payments**: JWT Access/Refresh flow, Razorpay Integration
+
+## Local Setup
 
 ### Prerequisites
-
 - Node.js 18+
-- PostgreSQL
-- (Optional) Redis
+- PostgreSQL Server
+- Razorpay Account Credentials
+- Groq / OpenAI API Keys
 
-### 1. Clone and install
-
+### 1. Clone and Install
 ```bash
-cd "Verdict Vision"
+git clone https://github.com/OmDev09/Verdict-Vision.git
+cd Verdict-Vision
 npm install
 ```
 
-### 2. Environment
+### 2. Environment Configuration
+Copy `.env.example` to `apps/api/.env` and `apps/web/.env.local`. Set your `DATABASE_URL`, `JWT_SECRET`, `GROQ_API_KEY`, and `RAZORPAY_*` keys.
 
-Copy `.env.example` to `apps/api/.env` and `apps/web/.env.local`. Set at least:
-
-- `DATABASE_URL` — PostgreSQL connection string
-- `JWT_SECRET` — long random string (e.g. 32+ chars)
-- `OPENAI_API_KEY` — for AI search and responses
-- `NEXT_PUBLIC_API_URL` — e.g. `http://localhost:4000`
-- For payments: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
-
-### 3. Database
-
+### 3. Database Generation
 ```bash
-npm run db:generate
-npm run db:push
+npx prisma generate
+npx prisma db push
 ```
+*Note: Bulk dataset ingestion scripts for Supreme Court and Delhi High Court data are located in the `/scripts` directory.*
 
-To create an ADMIN user, use Prisma Studio or run a one-off script that hashes a password and inserts a user with `role: 'ADMIN'`.
-
-
-### 4. Run
-
+### 4. Run the Platform
+Open two terminals to run the monorepo-style setup:
 ```bash
-# API (port 4000)
+# Terminal 1: Run the Backend API (Port 4000)
 npm run dev:api
 
-# Web (port 3000), in another terminal
+# Terminal 2: Run the Frontend Next.js app (Port 3000)
 npm run dev:web
 ```
+Go to `http://localhost:3000` to launch Verdict Vision.
 
-Or both: `npm run dev`
-
-- Frontend: http://localhost:3000  
-- API: http://localhost:4000  
-
-## Project structure
-
-```
-├── apps/
-│   ├── api/                 # NestJS backend
-│   │   ├── prisma/          # Schema, migrations
-│   │   └── src/
-│   │       ├── auth/        # JWT, register/login, lawyer verification
-│   │       ├── users/
-│   │       ├── search/      # 1 credit per search, AI response
-│   │       ├── payments/    # Plans, Razorpay order/confirm, webhook
-│   │       ├── cases/       # Keyword/suggest; RAG uses this + optional vector DB
-│   │       ├── ai/          # Embeddings, retrieve cases, generate response
-│   │       ├── admin/       # Stats, users, approve lawyers, create case
-│   │       └── audit/
-│   └── web/                 # Next.js frontend
-│       └── src/
-│           ├── app/         # Landing, login, register, dashboard, search, wallet, profile, admin
-│           ├── components/ # UI, disclaimer banner, dashboard nav
-│           ├── contexts/   # Auth
-│           └── lib/        # api client, utils
-├── .env.example
-└── README.md
-```
-
-## API overview
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | /auth/register | No | Register user |
-| POST | /auth/register/lawyer | No | Register lawyer (enrollment no) |
-| POST | /auth/login | No | Login |
-| GET | /users/me | JWT | Current user |
-| POST | /search | JWT | Run search (1 credit), get AI + similar cases |
-| GET | /search/history | JWT | Search history |
-| GET | /payments/plans | No | List plans |
-| POST | /payments/create-order | JWT | Create Razorpay order |
-| POST | /payments/confirm | JWT | Confirm payment, add credits |
-| POST | /payments/webhook | No | Razorpay webhook |
-| GET | /cases/suggest | No | Autocomplete suggestions |
-| GET/POST | /admin/* | JWT + ADMIN | Stats, users, lawyers, cases, payments |
-
-## Disclaimer
-
-**Verdict Vision provides AI-generated legal information and does not replace professional legal advice.** Shown in the UI and appended to AI responses.
-
-## Security
-
-- **Rate limiting**: Global throttle (100 requests/minute) via `@nestjs/throttler`.
-- **Passwords**: Argon2 (argon2id).
-- **JWT**: Stored in memory/localStorage on client; use short expiry and refresh token.
-- **Razorpay webhook**: Signature verification requires the raw request body. If using NestJS with body parser, exclude `/payments/webhook` from JSON parser and parse raw for that route, or use a proxy that forwards raw body.
-- **HTTPS**: Use in production; set `FRONTEND_URL` and CORS accordingly.
+## Disclaimer & Security
+- **Disclaimer**: Verdict Vision provides AI-generated legal information and does not replace professional legal advice from an enrolled advocate.
+- **Security**: The platform utilizes Argon2 hashing, strict role-based access control (RBAC), API rate-limiting, and sanitized raw-body webhooks for secure payment processing.
 
 ## License
-
-Proprietary. Use in compliance with Indian law and data sources (Supreme Court, Delhi High Court, eCourts, etc.).
+Proprietary. Data usage must comply with Supreme Court and Delhi High Court fair-use reporting standards.
