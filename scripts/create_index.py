@@ -3,7 +3,15 @@ import os
 import sys
 from urllib.parse import urlparse
 
-db_url = "postgresql://postgres:pn7RT9NZa8epWaae@db.cggyuyasrajmdeuqghqe.supabase.co:5432/postgres"
+from dotenv import load_dotenv
+
+env_path = os.path.join(os.path.dirname(__file__), '../apps/api/.env')
+load_dotenv(env_path)
+
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    print("Error: DATABASE_URL not found in apps/api/.env")
+    sys.exit(1)
 
 print("Connecting to Supabase PostgreSQL...")
 try:
